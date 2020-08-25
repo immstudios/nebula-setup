@@ -136,6 +136,7 @@ META_TYPES = {
 "id/guid":                ("m", 0, 0, 8, STRING,      None),                       # Created automatically when asset is created
 "id/vod":                 ("m", 0, 0, 8, STRING,      None),                       # VOD KEY
 "id/tape":                ("m", 0, 1, 8, STRING,      None),                       # Archive tape ID
+"id/umid":                ("m", 0, 1, 8, STRING,      None),
 
 "role/director":          ("m", 1, 0, 7, STRING,      None),
 "role/performer":         ("m", 1, 0, 7, STRING,      None),

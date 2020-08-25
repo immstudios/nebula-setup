@@ -43,6 +43,7 @@
   ["date/valid/ott"         , "OTT validity ends"      , "OTT Validity"      , ""],
   ["content_type"           , "Content type"           , null                , ""],
   ["id/guid"                , "GUID"                   , null                , ""],
+  ["id/umid"                , "UMID"                   , null                , ""],
   ["serie/episode"          , "Episode"                , null                , "Episode in a specific season of a TV or video series this asset is a member of"],
   ["video/display_format"   , "Display format"         , "Disp. format"      , ""],
   ["intended_audience"      , "Intended audience"      , "Audience"          , "A class of entity for whom the resource is intended or useful"],

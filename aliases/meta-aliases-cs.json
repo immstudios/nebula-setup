@@ -43,6 +43,7 @@
   ["date/valid/ott"         , "Konec platnosti OTT"    , null                , "Datum, po kterém není možné dílo dále šířit pomocí OTT platforem (web, sociální sítě, Smart TV)"],
   ["content_type"           , "Typ obsahu"             , null                , ""],
   ["id/guid"                , "GUID"                   , null                , ""],
+  ["id/umid"                , "UMID"                   , null                , ""],
   ["serie/episode"          , "Epizoda"                , null                , ""],
   ["video/display_format"   , "Formát zobrazení"       , "Formát zobr."      , ""],
   ["intended_audience"      , "Cílová skupina"         , "Cíl. skupina"      , ""],
