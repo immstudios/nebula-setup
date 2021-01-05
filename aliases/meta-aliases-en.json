@@ -22,6 +22,7 @@
   ["qc/report"              , "QC report"              , null                , ""],
   ["path"                   , "Path"                   , null                , ""],
   ["stop"                   , "Stop"                   , null                , ""],
+  ["loop"                   , "Loop"                   , null                , ""],
   ["id_asset"               , "Asset ID"               , null                , ""],
   ["runs/total"             , "Runs total"             , "Runs"              , ""],
   ["audio/codec"            , "Audio codec"            , null                , ""],

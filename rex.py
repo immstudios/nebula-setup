@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 __all__ = ["require"]
 
 import os
@@ -34,7 +36,6 @@ def indent(src, l=4):
 class Logging():
     def __init__(self, user="REX"):
         self.user = user
-        self.handlers = []
         self.formats = {
             INFO      : "INFO       {0:<15} {1}",
             DEBUG     : "\033[34mDEBUG      {0:<15} {1}\033[0m",
@@ -51,25 +52,19 @@ class Logging():
             GOOD_NEWS : "GOOD NEWS  {0:<10} {1}"
             }
 
-    def add_handler(self, handler):
-        self.handlers.append(handler)
-
     def _send(self, msgtype, *args, **kwargs):
         message = " ".join([str(arg) for arg in args])
         user = kwargs.get("user", self.user)
-        if kwargs.get("handlers", True):
-            for handler in self.handlers:
-                handler(user=self.user, message_type=msgtype, message=message)
         if PLATFORM == "unix":
             try:
-                print (self.formats[msgtype].format(user, message))
+                print (self.formats[msgtype].format(user, message), file=sys.stderr)
             except:
-                print (message.encode("utf-8"))
+                print (message.encode("utf-8"),file=sys.stderr)
         else:
             try:
-                print (self.formats_win[msgtype].format(user, message))
+                print (self.formats_win[msgtype].format(user, message), file=sys.stderr)
             except:
-                print (message.encode("utf-8"))
+                print (message.encode("utf-8"), file=sys.stderr)
 
     def debug(self, *args, **kwargs):
         self._send(DEBUG, *args, **kwargs)
@@ -86,7 +81,9 @@ class Logging():
     def goodnews(self, *args, **kwargs):
         self._send(GOOD_NEWS, *args, **kwargs)
 
+
 logging = Logging()
+
 
 def log_traceback(message="Exception!", **kwargs):
     tb = traceback.format_exc()
@@ -101,9 +98,6 @@ def critical_error(msg, **kwargs):
     sys.exit(1)
 
 
-
-
-
 class Repository(object):
     def __init__(self, parent,  url, **kwargs):
         self.parent = parent
@@ -112,16 +106,11 @@ class Repository(object):
         self.base_name = os.path.basename(url)
         self.path = os.path.join(self.parent.vendor_dir, self.base_name)
 
-    def get(self, key, default=None):
-        return self.settings.get(key, default)
-
     def __getitem__(self, key):
-        return self.settings[key]
+        return self.settings.get(key, None)
 
     def __repr__(self):
         return "vendor module '{}'".format(self.base_name)
-
-
 
 
 class Rex(object):
@@ -144,19 +133,20 @@ class Rex(object):
         if not hasattr(self, "_repos"):
             if not os.path.exists(self.manifest_path):
                 self._repos = []
-            try:
-                self.manifest = json.load(open(self.manifest_path))
-                if not self.manifest:
-                    return []
-                self._repos = []
-                for repo_url in self.manifest.keys():
-                    repo_settings = self.manifest[repo_url]
-                    repo = Repository(self, repo_url, **repo_settings)
-                    self._repos.append(repo)
-            except Exception:
-                log_traceback()
-                critical_error("Unable to load rex manifest. Exiting")
-                self._repos = []
+            else:
+                try:
+                    self.manifest = json.load(open(self.manifest_path))
+                    if not self.manifest:
+                        return []
+                    self._repos = []
+                    for repo_url in self.manifest.keys():
+                        repo_settings = self.manifest[repo_url]
+                        repo = Repository(self, repo_url, **repo_settings)
+                        self._repos.append(repo)
+                except Exception:
+                    log_traceback()
+                    critical_error("Unable to load rex manifest. Exiting")
+                    self._repos = []
         return self._repos
 
     def self_update(self):
@@ -174,7 +164,6 @@ class Rex(object):
                 f.write(new_rex)
         else:
             logging.info("REX is up to date")
-
 
     def main(self):
         for repo in self.repos:
@@ -196,6 +185,8 @@ class Rex(object):
                 logging.info("Updating {}".format(repo))
                 self.chdir(repo.path)
                 cmd = ["git", "pull"]
+                if repo["branch"]:
+                    cmd.extend(["origin", repo["branch"]])
             else:
                 return True
         else:
@@ -208,16 +199,22 @@ class Rex(object):
             time.sleep(.1)
         if p.returncode:
             critical_error("Unable to update {}".format(repo))
-
+        if repo["branch"]:
+            self.chdir(repo.path)
+            cmd = ["git", "checkout", repo["branch"]]
+            p = subprocess.Popen(cmd)
+            while p.poll() == None:
+                time.sleep(.1)
         return True
 
     def post_install(self, repo):
-        if (repo.get("python-path") or repo.get("python_path")) and not repo.path in sys.path:
+        if (repo["python-path"] or repo["python_path"]) and not repo.path in sys.path:
             sys.path.insert(0, repo.path)
 
 rex = Rex()
 
 def require(url, **kwargs):
+    if not "python_path" in kwargs:
+        kwargs["python_path"] = True
     repo = Repository(rex, url, **kwargs)
     return rex.update(repo) and rex.post_install(repo)
-

@@ -22,6 +22,7 @@
   ["qc/report"              , "QC report"              , "Report"            , "Výstupní záznam z technické kontroly kvality"],
   ["path"                   , "Cesta"                  , null                , "Relativní cesta k souboru"],
   ["stop"                   , "Stop"                   , null                , ""],
+  ["loop"                   , "Loop"                   , null                , ""],
   ["id_asset"               , "ID Assetu"              , null                , ""],
   ["runs/total"             , "Odvysílat celkem"       , null                , "Maximální celkový počet odvysílání pořadu. V případě dokoupení práv na další odvysílání, je třeba toto číslo přičíst ke stávajícímu."],
   ["audio/codec"            , "Audio kodek"            , null                , "Kodek použitý pro kompresi zvukové stopy"],

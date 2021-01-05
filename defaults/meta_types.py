@@ -36,6 +36,7 @@ META_TYPES = {
 "start":                  ("e",  1, 0, 0, DATETIME,    None),              # Event start time
 "stop":                   ("e",  1, 0, 0, DATETIME,    None),
 "run_mode":               ("ei", 0, 0, 0, INTEGER,     None),
+"loop":                   ("i" , 0, 0, 0, BOOLEAN,     None),
 "rundown_broadcast":      ("v",  0, 0, 0, DATETIME,    {"format" : "%H:%M:%S"}),
 "rundown_scheduled":      ("v",  0, 0, 0, DATETIME,    {"format" : "%H:%M:%S"}),
 "rundown_difference":     ("v",  0, 0, 0, TIMECODE,    None),
