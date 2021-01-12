@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -19,6 +19,6 @@ for settings_file in settings_files:
             pass
 
 try:
-    print config[sys.argv[1]]
+    print (config[sys.argv[1]])
 except Exception:
     sys.exit(1)
