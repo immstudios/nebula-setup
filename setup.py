@@ -41,7 +41,7 @@ def cs_download():
         return
 
     try:
-        csdata = json.loads(requests.get("https://cs.immstudios.org/dump").text)
+        csdata = json.loads(requests.get("https://cs.nbla.xyz/dump").text)
     except:
         log_traceback("Unable to load classification schemes")
         return
