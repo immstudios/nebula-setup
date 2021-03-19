@@ -13,21 +13,6 @@ to [get in touch with us](mailto:support@nebulabroadcast.com) and get a professi
 
 Yes. This is what we do for a living.
 
-Terms and definitions
----------------------
-
- - `asset` - A record in MAM database. Asset can be a physical media file, URL or just a virtual record for short text stories.
- - `folder` - Each asset falls into one folder based on its purpose (movie, music video, trailer, news story etc).
-    Each folder has its own metadata set.
- - `item`
- - `bin` - Ordered list of items. Typically a playlist block.
- - `event` - Calendar record. Typically a singe program block in channel's EPG
- - `hub` - Nebula API server
- - `service` - Services are started and operated by the master process and can be controlled (stopped, restarted ) using API.
- - `plugin` - Python script which extends default Nebula functionality. There are several types of plugins available.
- - `site` - Nebula instance with own database. Usually a television network with one or more channels
- - `storage` - Nebula does not use UNC paths for access to files. Instead each storage is mounted according to its type and storage ID and relative path is used.
-
 Prerequisites
 -------------
 
@@ -54,31 +39,37 @@ server {
     server_tokens       off;
 
     location /msg_publish {
+        allow                           10.0.0.0/8;
+        allow                           172.16.0.0/12;
         allow                           192.168.0.0/16;
         deny                            all;
+        access_log                      off;
         nchan_publisher;
         nchan_channel_id                $arg_id;
         nchan_message_buffer_length     50;
         nchan_message_timeout           10s;
     }
+    
+    location / {
+        return                  302 https://$host$request_uri;
+    }
 }
 
 
 server {
-    listen              443 ssl http2;
-    server_name         nebula.example.com;
-    server_tokens       off;
+    listen                      443 ssl http2;
+    server_name                 nebula.example.com;
+    server_tokens               off;
 
     ssl_certificate             /etc/letsencrypt/live/example.com/fullchain.pem;
     ssl_certificate_key         /etc/letsencrypt/live/example.com/privkey.pem;
     ssl_trusted_certificate     /etc/letsencrypt/live/example.com/chain.pem;
 
-    set $nxcore_root           /mnt/nebula_01/.nx;
+    set $nxcore_root            /mnt/nebula_01/.nx;
 
     location ~ /ws/(.*) {
         nchan_subscriber        websocket;
         nchan_channel_id        $1;
-
         add_header              Access-Control-Allow-Headers    'origin, content-type, accept, user-agent, referer' always;
         add_header              Access-Control-Allow-Origin     '*';
     }
@@ -87,14 +78,16 @@ server {
         mp4;
         mp4_max_buffer_size 5m;
         root                    $nxcore_root;
-        add_header              Access-Control-Allow-Headers    'origin, content-type, accept, user-agent, referer' always;
         add_header              Access-Control-Allow-Origin     '*' always;
+        add_header              Access-Control-Allow-Methods    'GET';
+        add_header              Access-Control-Allow-Headers    'origin, content-type, accept, user-agent, referer' always;
     }
 
     location /thumb/ {
         root                    $nxcore_root;
-        add_header              Access-Control-Allow-Headers    'origin, content-type, accept, user-agent, referer' always;
         add_header              Access-Control-Allow-Origin     '*' always;
+        add_header              Access-Control-Allow-Methods    'GET';
+        add_header              Access-Control-Allow-Headers    'origin, content-type, accept, user-agent, referer' always;
     }
 
     location ~* ^/tools/(.*)/static/(.*)$ {
@@ -104,19 +97,29 @@ server {
     location /static {
         proxy_pass              http://127.0.0.1:8080;
         proxy_buffering         off;
-        add_header              Access-Control-Allow-Headers    'origin, content-type, accept, user-agent, referer' always;
         add_header              Access-Control-Allow-Origin     '*' always;
-        proxy_set_header        Host        $host;
-        proxy_set_header        X-Real-IP   $remote_addr;
+        add_header              Access-Control-Allow-Methods    'GET';
+        add_header              Access-Control-Allow-Headers    'origin, content-type, accept, user-agent, referer' always;
+        proxy_set_header        Host                            $host;
+        proxy_set_header        X-Real-IP                       $remote_addr;
     }
 
     location ~ ^/(login|logout|ping|api|assets|detail|jobs|tool|services|passreset|settings|profile|$) {
+        if ($request_method = 'OPTIONS') {
+            add_header          Access-Control-Allow-Origin     '*';
+            add_header          Access-Control-Allow-Methods    'GET, POST, OPTIONS';
+            add_header          Access-Control-Allow-Headers    'origin, content-type, accept, user-agent, referer' always;
+            add_header          Content-Type                    'text/plain; charset=utf-8';
+            add_header          Content-Length                  0;
+            return              204;
+        }
+    
         proxy_pass              http://127.0.0.1:8080;
         proxy_buffering         off;
-        add_header              Access-Control-Allow-Headers    'origin, content-type, accept, user-agent, referer' always;
         add_header              Access-Control-Allow-Origin     '*' always;
-        proxy_set_header        Host        $host;
-        proxy_set_header        X-Real-IP   $remote_addr;
+        add_header              Access-Control-Allow-Headers    'origin, content-type, accept, user-agent, referer' always;
+        proxy_set_header        X-Real-IP                       $remote_addr;
+        proxy_set_header        Host                            $host;
     }
 
     location / {
