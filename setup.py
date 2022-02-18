@@ -23,13 +23,27 @@ except ImportError:
 # Settings
 #
 
+# Use settings.json file
 config = {}
 try:
     config.update(json.load(open("settings.json")))
 except Exception:
-    log_traceback("Configuration error")
-    critical_error("Unable to open settings file")
+    pass
 
+# Then environment variables (which have the highest priority) to override
+for key, value in dict(os.environ).items():
+    if key.lower().startswith("nebula_"):
+        key = key.lower().replace("nebula_", "", 1)
+        config[key] = value
+
+# Assert requiered settings are present
+for key in ["site_name", "db_host", "db_user", "db_pass", "db_name"]:
+    if not config.get(key):
+        critical_error(f"{key} is not specified")
+
+#
+# Download classification schemes
+#
 
 def cs_download():
     if not os.path.exists("cs"):
