@@ -5,8 +5,6 @@ import sys
 import time
 import json
 
-import rex
-
 from nxtools import *
 from defaults import *
 
@@ -45,6 +43,7 @@ for key in ["site_name", "db_host", "db_user", "db_pass", "db_name"]:
 # Download classification schemes
 #
 
+
 def cs_download():
     if not os.path.exists("cs"):
         os.mkdir("cs")
@@ -63,24 +62,26 @@ def cs_download():
         with open("cs/{}.json".format(slugify(csdato["cs"])), "w") as f:
             json.dump(csdato, f)
 
+
 cs_download()
 
 #
 # Database connection
 #
 
+
 class DB(object):
     def __init__(self, **kwargs):
         self.pmap = {
-                "host" : "db_host",
-                "user" : "db_user",
-                "password" : "db_pass",
-                "database" : "db_name",
-            }
+            "host": "db_host",
+            "user": "db_user",
+            "password": "db_pass",
+            "database": "db_name",
+        }
 
         self.settings = {
-                key : kwargs.get(self.pmap[key], config[self.pmap[key]]) for key in self.pmap
-            }
+            key: kwargs.get(self.pmap[key], config[self.pmap[key]]) for key in self.pmap
+        }
 
         self.conn = psycopg2.connect(**self.settings)
         self.cur = self.conn.cursor()
@@ -114,6 +115,7 @@ class DB(object):
 # Template installers
 #
 
+
 def install_settings():
     logging.info("Installing site settings")
     db = DB()
@@ -143,9 +145,9 @@ def install_channels():
     for id in data["channels"]:
         channel_type, settings = data["channels"][id]
         db.query(
-                "INSERT INTO channels (id, channel_type, settings) VALUES (%s, %s, %s)",
-                [id, channel_type, json.dumps(settings)]
-            )
+            "INSERT INTO channels (id, channel_type, settings) VALUES (%s, %s, %s)",
+            [id, channel_type, json.dumps(settings)]
+        )
     db.query("SELECT setval(pg_get_serial_sequence('channels', 'id'), coalesce(max(id),0) + 1, false) FROM channels;")
     db.commit()
 
@@ -176,9 +178,9 @@ def install_actions():
         title, service_type, settings_path = data["actions"][id]
         settings = open(settings_path).read()
         db.query(
-                "INSERT INTO actions (id, service_type, title, settings) VALUES (%s, %s, %s, %s)",
-                [id, service_type, title, settings]
-            )
+            "INSERT INTO actions (id, service_type, title, settings) VALUES (%s, %s, %s, %s)",
+            [id, service_type, title, settings]
+        )
     db.query("SELECT setval(pg_get_serial_sequence('actions', 'id'), coalesce(max(id),0) + 1, false) FROM actions;")
     db.commit()
 
@@ -190,9 +192,9 @@ def install_folders():
     for id in data["folders"]:
         settings = data["folders"][id]
         db.query(
-                "INSERT INTO folders (id, settings) VALUES (%s, %s)",
-                [id, json.dumps(settings)]
-            )
+            "INSERT INTO folders (id, settings) VALUES (%s, %s)",
+            [id, json.dumps(settings)]
+        )
     db.query("SELECT setval(pg_get_serial_sequence('folders', 'id'), coalesce(max(id),0) + 1, false) FROM folders;")
     db.commit()
 
@@ -216,12 +218,12 @@ def install_meta_types():
     for key in data["meta_types"]:
         ns, e, index, ft, cls, settings = data["meta_types"][key]
         meta_type_data = {
-                "ns" : ns,
-                "class" : cls,
-                "fulltext" : ft,
-                "editable" : e,
-                "aliases" : {}
-            }
+            "ns": ns,
+            "class": cls,
+            "fulltext": ft,
+            "editable": e,
+            "aliases": {}
+        }
         if settings:
             meta_type_data.update(settings)
 
@@ -229,15 +231,15 @@ def install_meta_types():
             meta_type_data["aliases"][lang] = aliases[lang][key]
 
         db.query(
-                "INSERT INTO meta_types (key, settings) VALUES (%s, %s)",
-                [key, json.dumps(meta_type_data)]
-            )
+            "INSERT INTO meta_types (key, settings) VALUES (%s, %s)",
+            [key, json.dumps(meta_type_data)]
+        )
         if index:
             idx_name = "idx_" + key.replace("/", "_")
             db.query(
-                    "CREATE INDEX IF NOT EXISTS {} ON assets((meta->>%s))".format(idx_name),
-                    [key]
-                )
+                "CREATE INDEX IF NOT EXISTS {} ON assets((meta->>%s))".format(idx_name),
+                [key]
+            )
     db.commit()
 
 
@@ -255,10 +257,9 @@ def install_cs():
         db.commit()
         for value in data["data"]:
             settings = data["data"][value]
-            db.query("INSERT INTO cs (cs, value, settings) VALUES (%s, %s, %s)", [name, value, json.dumps(settings)])
+            db.query("INSERT INTO cs (cs, value, settings) VALUES (%s, %s, %s)", [
+                     name, value, json.dumps(settings)])
         db.commit()
-
-
 
 
 def install_views():
@@ -268,9 +269,9 @@ def install_views():
     for id in data["views"]:
         settings = data["views"][id]
         db.query(
-                "INSERT INTO views (id, settings) VALUES (%s, %s)",
-                [id, json.dumps(settings)]
-            )
+            "INSERT INTO views (id, settings) VALUES (%s, %s)",
+            [id, json.dumps(settings)]
+        )
     db.query("SELECT setval(pg_get_serial_sequence('views', 'id'), coalesce(max(id),0) + 1, false) FROM views;")
     db.commit()
 
@@ -292,4 +293,5 @@ if __name__ == "__main__":
     install_cs()
     install_views()
 
-    logging.goodnews("Nebula settings migration completed in {:03f} seconds".format(time.time() - start_time))
+    logging.goodnews("Nebula settings migration completed in {:03f} seconds".format(
+        time.time() - start_time))
